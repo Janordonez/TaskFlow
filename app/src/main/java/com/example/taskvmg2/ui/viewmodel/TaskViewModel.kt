@@ -1,74 +1,99 @@
 package com.example.taskvmg2.ui.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.taskvmg2.ui.repository.TaskRepository
 import com.example.taskvmg2.ui.model.Task
+import com.example.taskvmg2.ui.model.TaskPriority
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class TaskViewModel : ViewModel() {
-    private val repository = TaskRepository()
+    private val _tasks = MutableStateFlow(
+        listOf(
+            Task(
+                id = 1,
+                title = "Entregar informe de laboratorio",
+                description = "Subir el PDF final antes de las 23:59.",
+                priority = TaskPriority.HIGH,
+                isCompleted = false
+            ),
+            Task(
+                id = 2,
+                title = "Repasar Kotlin para evaluación",
+                description = "Practicar ViewModel, StateFlow y Navigation Compose.",
+                priority = TaskPriority.MEDIUM,
+                isCompleted = false
+            ),
+            Task(
+                id = 3,
+                title = "Organizar escritorio y apuntes",
+                description = "Ordenar carpetas de materias y pendientes personales.",
+                priority = TaskPriority.LOW,
+                isCompleted = true
+            )
+        )
+    )
+    val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
 
-    var tasks by mutableStateOf(listOf<Task>())
-        private set
-
-    var id by mutableStateOf("")
-        private set
-    var title by mutableStateOf("")
-        private set
-    var completed by mutableStateOf(false)
-        private set
-
-
-    init {
-        loadTask()
+    fun getTaskById(taskId: Int): Task? {
+        return _tasks.value.firstOrNull { it.id == taskId }
     }
 
-    fun onIdChange(newId: String) {
-        this.id = newId
-    }
-    fun onTitleChange(newTitle: String) {
-        this.title = newTitle
-    }
-    fun onCompletedChange(newCompleted: Boolean) {
-        this.completed = newCompleted
+    fun addTask(title: String, description: String, priority: TaskPriority) {
+        val cleanTitle = title.trim()
+        if (cleanTitle.isEmpty()) return
+
+        val newTask = Task(
+            id = nextTaskId(),
+            title = cleanTitle,
+            description = description.trim(),
+            priority = priority,
+            isCompleted = false
+        )
+        _tasks.update { current -> current + newTask }
     }
 
-    private fun loadTask() {
-        tasks = repository.getTasks()
-    }
-    fun loadTask(taskId: Int?) {
-        if (taskId == null) {
-            clearForm()
-            return
-        } else {
-            val task = repository.getTaskId(taskId)
-            task?.let {
-                id = it.id.toString()
-                title = it.title
-                completed = it.completed
+    fun updateTask(taskId: Int, title: String, description: String, priority: TaskPriority) {
+        val cleanTitle = title.trim()
+        if (cleanTitle.isEmpty()) return
+
+        _tasks.update { current ->
+            current.map { task ->
+                if (task.id == taskId) {
+                    task.copy(
+                        title = cleanTitle,
+                        description = description.trim(),
+                        priority = priority
+                    )
+                } else {
+                    task
+                }
             }
         }
     }
-    fun addTask(task: Task) {
-        repository.addTask(task)
-        loadTask()
+
+    fun upsertTask(taskId: Int?, title: String, description: String, priority: TaskPriority) {
+        if (taskId == null) {
+            addTask(title, description, priority)
+        } else {
+            updateTask(taskId, title, description, priority)
+        }
     }
-    fun removeTask(task: Task) {
-        repository.removeTask(task)
-        loadTask()
+
+    fun deleteTask(taskId: Int) {
+        _tasks.update { current -> current.filterNot { it.id == taskId } }
     }
-    fun toggleTask(task: Task) {
-        repository.toggleTask(task)
-        loadTask()
+
+    fun toggleTaskCompletion(taskId: Int) {
+        _tasks.update { current ->
+            current.map { task ->
+                if (task.id == taskId) task.copy(isCompleted = !task.isCompleted) else task
+            }
+        }
     }
-    fun getTaskId(id: Int): Task? {
-        return repository.getTaskId(id)
-    }
-    fun clearForm(){
-        id=""
-        title=""
-        completed=false
+
+    private fun nextTaskId(): Int {
+        return (_tasks.value.maxOfOrNull { it.id } ?: 0) + 1
     }
 }
