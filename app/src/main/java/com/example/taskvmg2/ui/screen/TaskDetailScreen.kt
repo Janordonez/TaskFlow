@@ -149,7 +149,7 @@ fun TaskDetailScreen(
                         Spacer(
                             modifier = Modifier.width(8.dp)
                         )
-                        Text("Guardar")
+                        Text("Agregar Tarea")
                     }
                 }
             }
