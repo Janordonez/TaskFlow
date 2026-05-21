@@ -1,103 +1,143 @@
 package com.example.taskvmg2.ui.screen
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.taskvmg2.ui.model.Task
-import com.example.taskvmg2.ui.navigation.TaskDetail
+import com.example.taskvmg2.ui.components.TaskCard
+import com.example.taskvmg2.ui.components.TaskFiltersRow
+import com.example.taskvmg2.ui.navigation.NavigationRoutes
 import com.example.taskvmg2.ui.viewmodel.TaskViewModel
 
 @Composable
-fun TaskListScreen(navController: NavController,
-                   viewModel: TaskViewModel = viewModel())
-{
+@OptIn(ExperimentalMaterial3Api::class)
+fun TaskListScreen(
+    navController: NavController,
+    viewModel: TaskViewModel
+) {
+    val uiState = viewModel.taskListUiState.collectAsState().value
 
     Scaffold(
-        modifier = Modifier.fillMaxSize()
-       ,floatingActionButton = {
-           FloatingActionButton(onClick = {
-               navController.navigate(TaskDetail)
-           }) {
-               Icon(
-                   imageVector = Icons.Default.Add,
-                   contentDescription = "Agregar tarea"
-               )
-           }
-       }
-    )
-    { padding ->
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Lista de tareas",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        if (viewModel.tasks.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ){
-                Text("No hay tareas registradas")
+        modifier = Modifier.fillMaxSize(),
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate(NavigationRoutes.addEditRoute()) }
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar tarea")
             }
         }
-        else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = "TaskFlow",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 12.dp)
             )
-            {
-                items(viewModel.tasks.size)
-                {
-                    Card(
-                        modifier = Modifier.padding(vertical = 8.dp)
-                            .fillMaxWidth()
+            Text(
+                text = "Organizador de tareas academicas y personales",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+            )
+
+            TaskFiltersRow(
+                selectedPriorityFilter = uiState.selectedPriorityFilter,
+                selectedStatusFilter = uiState.selectedStatusFilter,
+                onPrioritySelected = viewModel::setPriorityFilter,
+                onStatusSelected = viewModel::setStatusFilter
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    tonalElevation = 2.dp,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Pendientes: ${uiState.pendingCount}",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge
                     )
-                    {
-                        Row(
-                            modifier = Modifier.padding(2.dp).fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                            ,verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(viewModel.tasks[it].id.toString())
-                            Text(viewModel.tasks[it].title)
-                            Checkbox(
-                                checked = viewModel.tasks[it].completed,
-                                onCheckedChange = {}
-                            )
-                        }
-                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Surface(
+                    tonalElevation = 2.dp,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Completadas: ${uiState.completedCount}",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = uiState.filteredTasks.isEmpty(),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No hay tareas",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(y = (-4).dp)
+            ) {
+                items(items = uiState.filteredTasks, key = { it.id }) { task ->
+                    TaskCard(
+                        task = task,
+                        onToggleCompleted = { viewModel.toggleTaskCompletion(task.id) },
+                        onDelete = { viewModel.deleteTask(task.id) },
+                        onEdit = { navController.navigate(NavigationRoutes.addEditRoute(task.id)) },
+                        onClick = { navController.navigate(NavigationRoutes.detailRoute(task.id)) }
+                    )
                 }
             }
         }
