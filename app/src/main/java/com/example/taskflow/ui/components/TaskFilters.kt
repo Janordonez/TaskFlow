@@ -1,9 +1,9 @@
-package com.example.taskvmg2.ui.components
+package com.example.taskflow.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -17,12 +17,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.taskvmg2.ui.model.PriorityFilter
-import com.example.taskvmg2.ui.model.StatusFilter
+import com.example.taskflow.model.PriorityFilter
+import com.example.taskflow.model.StatusFilter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskFiltersRow(
+fun TaskFilters(
     selectedPriorityFilter: PriorityFilter,
     selectedStatusFilter: StatusFilter,
     onPrioritySelected: (PriorityFilter) -> Unit,
@@ -33,9 +33,7 @@ fun TaskFiltersRow(
     var statusExpanded by remember { mutableStateOf(false) }
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         ExposedDropdownMenuBox(
@@ -48,15 +46,13 @@ fun TaskFiltersRow(
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Prioridad") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = priorityExpanded)
-                },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = priorityExpanded) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor()
             )
 
-            ExposedDropdownMenu(
+            DropdownMenu(
                 expanded = priorityExpanded,
                 onDismissRequest = { priorityExpanded = false }
             ) {
@@ -82,15 +78,13 @@ fun TaskFiltersRow(
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Estado") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
-                },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor()
             )
 
-            ExposedDropdownMenu(
+            DropdownMenu(
                 expanded = statusExpanded,
                 onDismissRequest = { statusExpanded = false }
             ) {

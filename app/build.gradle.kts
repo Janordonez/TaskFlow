@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.taskvmg2"
+    namespace = "com.example.taskflow"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -13,7 +13,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.taskvmg2"
+        applicationId = "com.example.taskflow"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

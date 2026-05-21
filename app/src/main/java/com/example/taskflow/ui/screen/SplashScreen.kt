@@ -1,4 +1,4 @@
-package com.example.taskvmg2.ui.screen
+package com.example.taskflow.ui.screen
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -21,8 +21,8 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition(label = "splash_animation")
-    val scale = infiniteTransition.animateFloat(
+    val animation = rememberInfiniteTransition(label = "splash_animation")
+    val scale = animation.animateFloat(
         initialValue = 0.96f,
         targetValue = 1.04f,
         animationSpec = infiniteRepeatable(
