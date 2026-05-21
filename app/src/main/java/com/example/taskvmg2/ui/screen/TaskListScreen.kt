@@ -5,10 +5,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -18,6 +21,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.taskvmg2.ui.components.TaskCard
+import com.example.taskvmg2.ui.components.TaskFiltersRow
 import com.example.taskvmg2.ui.navigation.NavigationRoutes
 import com.example.taskvmg2.ui.viewmodel.TaskViewModel
 
@@ -35,7 +40,7 @@ fun TaskListScreen(
     navController: NavController,
     viewModel: TaskViewModel
 ) {
-    val tasks = viewModel.tasks.collectAsState().value
+    val uiState = viewModel.taskListUiState.collectAsState().value
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -66,8 +71,46 @@ fun TaskListScreen(
                 modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
             )
 
+            TaskFiltersRow(
+                selectedPriorityFilter = uiState.selectedPriorityFilter,
+                selectedStatusFilter = uiState.selectedStatusFilter,
+                onPrioritySelected = viewModel::setPriorityFilter,
+                onStatusSelected = viewModel::setStatusFilter
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    tonalElevation = 2.dp,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Pendientes: ${uiState.pendingCount}",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Surface(
+                    tonalElevation = 2.dp,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Completadas: ${uiState.completedCount}",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+
             AnimatedVisibility(
-                visible = tasks.isEmpty(),
+                visible = uiState.filteredTasks.isEmpty(),
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -76,7 +119,7 @@ fun TaskListScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No hay tareas registradas. Usa el boton + para crear una.",
+                        text = "No hay tareas",
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -87,7 +130,7 @@ fun TaskListScreen(
                     .fillMaxSize()
                     .offset(y = (-4).dp)
             ) {
-                items(items = tasks, key = { it.id }) { task ->
+                items(items = uiState.filteredTasks, key = { it.id }) { task ->
                     TaskCard(
                         task = task,
                         onToggleCompleted = { viewModel.toggleTaskCompletion(task.id) },

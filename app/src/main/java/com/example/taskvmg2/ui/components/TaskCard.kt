@@ -1,6 +1,7 @@
 package com.example.taskvmg2.ui.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,15 @@ fun TaskCard(
     onEdit: () -> Unit,
     onClick: () -> Unit
 ) {
+    val cardContainerColor = animateColorAsState(
+        targetValue = if (task.isCompleted) {
+            MaterialTheme.colorScheme.surfaceVariant
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
+        label = "task_card_color"
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,7 +55,7 @@ fun TaskCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = cardContainerColor.value
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
@@ -73,7 +83,11 @@ fun TaskCard(
             Text(
                 text = if (task.description.isBlank()) "Sin descripcion" else task.description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (task.isCompleted) {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
             )
             Spacer(modifier = Modifier.height(10.dp))
 
